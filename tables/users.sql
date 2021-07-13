@@ -3,5 +3,6 @@ CREATE TABLE users (
     name VARCHAR(100) NOT NULL,
     username VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
-    password VARCHAR(100) NOT NULL
+    password VARCHAR(100) NOT NULL,
+    verified VARCHAR(5) NOT NULL
 );
