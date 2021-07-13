@@ -129,7 +129,39 @@ async function login(req, res){
      
 }
 
+async function verifyToken(req, res){
+    token = req.headers.authorization.split(' ')[1]
+    jwt.verify(token, process.env.SECRET_KEY, (err, user)=>{
+        if(err){
+            console.log(err)
+            if(err.name == 'TokenExpiredError'){
+                return res.json({
+                    message: 'token expired'
+                })
+            }
+            else if(err.name == 'JsonWebTokenError' && err.message == 'jwt malformed'){
+                return res.json({
+                    message: 'jwt malformed'
+                })
+            }
+            else if(err.name == 'JsonWebTokenError' && err.message == 'invalid token'){
+                return res.json({
+                    message: 'invalid token'
+                })
+            }
+        }
+        else{
+            return res.json({
+                message: 'verified',
+                user
+            })
+        }
+    })
+
+}
+
 module.exports = {
     register,
-    login
+    login,
+    verifyToken
 }
