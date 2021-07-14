@@ -89,7 +89,8 @@ async function login(req, res) {
                         jwt.sign({
                             name: user.name,
                             username: user.username,
-                            email: user.email
+                            email: user.email,
+                            verified: user.verified
                         }, process.env.SECRET_KEY, { expiresIn: '60m' }, (err, token) => {
                             if (err) {
                                 console.log(err)
