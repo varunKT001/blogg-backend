@@ -1,6 +1,7 @@
 const { pool } = require('../config/dbconfig')
 const bcrpt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const { transport } = require('../config/nodemailerConfig')
 const salt = 10
 
 async function register(req, res) {
@@ -132,6 +133,7 @@ async function login(req, res) {
 
 async function verifyToken(req, res) {
     token = req.headers.authorization.split(' ')[1]
+    console.log('verifyToken request recieved')
     jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
         if (err) {
             console.log(err)
@@ -150,6 +152,11 @@ async function verifyToken(req, res) {
                     message: 'invalid token'
                 })
             }
+            else{
+                return res.json({
+                    message: 'token expired'
+                })
+            }
         }
         else {
             return res.json({
@@ -161,8 +168,303 @@ async function verifyToken(req, res) {
 
 }
 
+async function sendEmailLink(req, res){
+    console.log('email verification sending link request recieved')
+    let user = req.body
+    console.log(user)
+
+    let emailToken = await jwt.sign({email: user.email}, process.env.SECRET_KEY, {expiresIn: '2min'})
+
+    const url = `http://${process.env.SITE_URL}/auth/verifyUserEmail/${emailToken}`
+
+    const html = `<h1>hey, ${user.name}</h1>
+                        <h3>Account Verification</h3>
+                        <p>Thank you for trying out blogg. Before you are able post blogs, you must verify your email.
+                        </p>
+                        <p>Click on the following link to verify your email address:</p>
+                        <a href="${url}">VERIFY</a>`
+
+    const mailOptions = {
+        from: `"blogg" <${process.env.EMAIL}>`,
+        to: user.email,
+        subject: 'Account Verification',
+        html: html
+    }
+
+    /*---------- SENDING MAIL TO PROVIDED EMAIL ADDRESS ----------*/
+    transport.sendMail(mailOptions, (err, info) => {
+        if (err) {
+            console.log(err)
+            return res.json({
+                message: 'internal server error',
+                errcode: '#401'
+            })
+        }
+        else {
+            console.log('mail sent')
+            return res.json({
+                message: 'email verification link sent'
+            })
+        }
+    })
+
+}
+
+async function verifyUserEmail(req, res){
+    let token = req.params.emailToken
+    jwt.verify(token, process.env.SECRET_KEY, async (err, user)=>{
+        if (err) {
+            console.log(err)
+            let errorResponse = `<!DOCTYPE html>
+                                    <html lang="en">
+
+                                    <head>
+                                        <meta charset="UTF-8">
+                                        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                        <title>Email Verification</title>
+                                        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+                                        <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+                                        <style>
+                                            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap');
+
+                                            body {
+                                                width: 100vw;
+                                                height: 100vh;
+                                                margin: 0px;
+                                                padding: 0px;
+                                                font-family: 'Poppins', sans-serif;
+                                                ;
+                                                background: #eeeeee;
+                                            }
+
+                                            .material-icons.md-64 {
+                                                font-size: 64px;
+                                            }
+
+                                            .material-icons.green600 {
+                                                color: red;
+                                            }
+
+                                            .container {
+                                                width: 100%;
+                                                height: 100%;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                            }
+
+                                            .message-box {
+                                                padding: 20px;
+                                                display: flex;
+                                                justify-content: center;
+                                                width: 40%;
+                                                background: rgba(255, 0, 0, 0.05);
+                                                border: 2px solid red;
+                                                border-radius: 5px;
+                                            }
+
+                                            .tick {
+                                                width: 100%;
+                                                display: flex;
+                                                flex-direction: column;
+                                                align-items: center;
+                                            }
+
+                                            .tick div:nth-child(1) {
+                                                display: flex;
+                                                justify-content: center;
+
+                                            }
+                                            a {
+                                                text-decoration: none;
+                                                font-weight: bolder;
+                                            }
+                                        </style>
+                                    </head>
+
+                                    <body>
+                                        <div class="container">
+                                            <div class="message-box">
+                                                <div class="tick">
+                                                    <div><span class="material-icons md-64 green600">gpp_maybe</span></div>
+                                                    <div>Error: ${err.message}</div>
+                                                    <div>Verification failed</div>
+                                                    <div>Click here to go to the <a href="http://localhost:5500">blogg</a></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </body>
+
+                                    </html>`
+            return res.send(errorResponse)
+        }
+        else {
+            try {
+                let result = await pool.query(`UPDATE users SET verified = $1 WHERE email = $2`, ['true', user.email])
+                let response = `<!DOCTYPE html>
+                                <html lang="en">
+                                <head>
+                                    <meta charset="UTF-8">
+                                    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                    <title>Email Verification</title>
+                                        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+                                        <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+                                    <style>
+                                        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap');
+
+                                        body{
+                                            width: 100vw;
+                                            height: 100vh;
+                                            margin: 0px;
+                                            padding: 0px;
+                                            font-family: 'Poppins', sans-serif;;
+                                            background: #eeeeee;
+                                        }
+                                        .material-icons.md-64 { font-size: 64px; }
+                                        .material-icons.green600 { color: green; }
+                                        .container{
+                                            width: 100%;
+                                            height: 100%;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                        }
+                                        .message-box{
+                                            padding: 20px;
+                                            display: flex;
+                                            justify-content: center;
+                                            width: 40%;
+                                            height: 40%;
+                                            background: rgba(0, 255, 0, 0.05);
+                                            border: 2px solid green;
+                                            border-radius: 5px;
+                                        }
+                                        .tick{
+                                            width: 100%;
+                                            display: flex;
+                                            flex-direction: column;
+                                            justify-content: space-evenly;
+                                        }
+                                        .tick div:nth-child(1){
+                                            display: flex;
+                                            justify-content: center;
+
+                                        }
+                                        a{
+                                            text-decoration: none;
+                                            font-weight: bolder;
+                                        }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <div class="message-box">
+                                            <div class="tick">
+                                                <div><span class="material-icons md-64 green600">verified_user</span></div>
+                                                <div>Thank you for verifying your E-mail. You will now be able to write public blogs. Be sure to <strong>RE-LOGIN</strong> to your account.</div>
+                                                <div>Click here to go to the <a href="http://localhost:5500">blogg</a></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </body>
+                                </html>`
+                return res.send(response)
+            } catch (err) {
+                console.log(err)
+                let errorResponse = `<!DOCTYPE html>
+                                    <html lang="en">
+
+                                    <head>
+                                        <meta charset="UTF-8">
+                                        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                        <title>Email Verification</title>
+                                        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+                                        <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+                                        <style>
+                                            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap');
+
+                                            body {
+                                                width: 100vw;
+                                                height: 100vh;
+                                                margin: 0px;
+                                                padding: 0px;
+                                                font-family: 'Poppins', sans-serif;
+                                                ;
+                                                background: #eeeeee;
+                                            }
+
+                                            .material-icons.md-64 {
+                                                font-size: 64px;
+                                            }
+
+                                            .material-icons.green600 {
+                                                color: red;
+                                            }
+
+                                            .container {
+                                                width: 100%;
+                                                height: 100%;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                            }
+
+                                            .message-box {
+                                                padding: 20px;
+                                                display: flex;
+                                                justify-content: center;
+                                                width: 40%;
+                                                background: rgba(255, 0, 0, 0.05);
+                                                border: 2px solid red;
+                                                border-radius: 5px;
+                                            }
+
+                                            .tick {
+                                                width: 100%;
+                                                display: flex;
+                                                flex-direction: column;
+                                                align-items: center;
+                                            }
+
+                                            .tick div:nth-child(1) {
+                                                display: flex;
+                                                justify-content: center;
+
+                                            }
+                                            a {
+                                                text-decoration: none;
+                                                font-weight: bolder;
+                                            }
+                                        </style>
+                                    </head>
+
+                                    <body>
+                                        <div class="container">
+                                            <div class="message-box">
+                                                <div class="tick">
+                                                    <div><span class="material-icons md-64 green600">gpp_maybe</span></div>
+                                                    <div>Error: ${err.message}</div>
+                                                    <div>Verification failed</div>
+                                                    <div>Click here to go to the <a href="http://localhost:5500">blogg</a></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </body>
+
+                                    </html>`
+                return res.send(errorResponse)
+            }
+        }
+    })
+}
+
 module.exports = {
     register,
     login,
-    verifyToken
+    verifyToken,
+    sendEmailLink,
+    verifyUserEmail
 }

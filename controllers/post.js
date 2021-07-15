@@ -20,6 +20,24 @@ async function getBlogs(req, res){
     }
 }
 
+async function getUserBlogs(req, res){
+    console.log('fetch user blogs request recieved')
+    try {
+        let result = await pool.query(`SELECT * FROM blogs WHERE author = $1 ORDER BY blogid DESC`, [req.params.username])
+        let blogs = result.rows
+        return res.json({
+            message: 'blogs fetched successfully',
+            blogs
+        })
+    } catch (err) {
+        console.log(err)
+        return res.json({
+            message: 'internal server error',
+            errcode: '#101'
+        })
+    }
+}
+
 async function postBlog(req, res){
     console.log('post blog request recieved')
     blog = {
@@ -44,7 +62,26 @@ async function postBlog(req, res){
     }
 }
 
+async function deleteUserBlog(req, res){
+    console.log('delete user blog request recieved', req.params.blogid)
+    blogid = req.params.blogid
+    try {
+        let result = await pool.query(`DELETE FROM blogs WHERE blogid = $1`, [blogid])
+        return res.json({
+            message: 'blog deleted successfully'
+        })
+    } catch (err) {
+        console.log(err)
+        return res.json({
+            message: 'internal server error',
+            errcode: '#104'
+        })
+    }
+}
+
 module.exports = {
     getBlogs, 
-    postBlog
+    getUserBlogs,
+    postBlog,
+    deleteUserBlog
 }
