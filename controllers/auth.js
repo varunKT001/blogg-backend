@@ -175,7 +175,7 @@ async function sendEmailLink(req, res){
 
     let emailToken = await jwt.sign({email: user.email}, process.env.SECRET_KEY, {expiresIn: '2min'})
 
-    const url = `http://${process.env.SITE_URL}/auth/verifyUserEmail/${emailToken}`
+    const url = `https://${process.env.SITE_URL}/auth/verifyUserEmail/${emailToken}`
 
     const html = `<h1>hey, ${user.name}</h1>
                         <h3>Account Verification</h3>
@@ -290,7 +290,7 @@ async function verifyUserEmail(req, res){
                                                     <div><span class="material-icons md-64 green600">gpp_maybe</span></div>
                                                     <div>Error: ${err.message}</div>
                                                     <div>Verification failed</div>
-                                                    <div>Click here to go to the <a href="http://localhost:5500">blogg</a></div>
+                                                    <div>Click here to go to the <a href="https://letsblogg.netlify.app/views/homepage/homepage.html">blogg</a></div>
                                                 </div>
                                             </div>
                                         </div>
@@ -364,7 +364,7 @@ async function verifyUserEmail(req, res){
                                             <div class="tick">
                                                 <div><span class="material-icons md-64 green600">verified_user</span></div>
                                                 <div>Thank you for verifying your E-mail. You will now be able to write public blogs. Be sure to <strong>RE-LOGIN</strong> to your account.</div>
-                                                <div>Click here to go to the <a href="http://localhost:5500">blogg</a></div>
+                                                <div>Click here to go to the <a href="https://letsblogg.netlify.app/views/homepage/homepage.html">blogg</a></div>
                                             </div>
                                         </div>
                                     </div>
@@ -448,7 +448,7 @@ async function verifyUserEmail(req, res){
                                                     <div><span class="material-icons md-64 green600">gpp_maybe</span></div>
                                                     <div>Error: ${err.message}</div>
                                                     <div>Verification failed</div>
-                                                    <div>Click here to go to the <a href="http://localhost:5500">blogg</a></div>
+                                                    <div>Click here to go to the <a href="https://letsblogg.netlify.app/views/homepage/homepage.html">blogg</a></div>
                                                 </div>
                                             </div>
                                         </div>
