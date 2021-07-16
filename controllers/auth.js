@@ -336,7 +336,6 @@ async function verifyUserEmail(req, res){
                                             display: flex;
                                             justify-content: center;
                                             width: 40%;
-                                            height: 40%;
                                             background: rgba(0, 255, 0, 0.05);
                                             border: 2px solid green;
                                             border-radius: 5px;
