@@ -46,10 +46,11 @@ async function postBlog(req, res){
         date: req.body.date,
         edited: req.body.edited,
         content: marked(req.body.content),
+        description: req.body.description,
         contentraw: req.body.content
     }
     try {
-        let result = await pool.query(`INSERT INTO blogs (tittle, author, date, edited, content, contentraw) VALUES ($1, $2, $3, $4, $5, $6)`, [blog.tittle, blog.author, blog.date, blog.edited, blog.content, blog.contentraw])
+        let result = await pool.query(`INSERT INTO blogs (tittle, author, date, edited, content, contentraw, description) VALUES ($1, $2, $3, $4, $5, $6, $7)`, [blog.tittle, blog.author, blog.date, blog.edited, blog.content, blog.contentraw, blog.description])
         return res.json({
             message: 'blog posted successfully'
         })
