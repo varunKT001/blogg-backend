@@ -82,12 +82,14 @@ async function login(req, res) {
                 else {
                     if (match) {
                         const user = {
+                            id: result.rows[0].id,
                             name: result.rows[0].name,
                             username: result.rows[0].username,
                             email: result.rows[0].email,
                             verified: result.rows[0].verified
                         }
                         jwt.sign({
+                            id: user.id,
                             name: user.name,
                             username: user.username,
                             email: user.email,

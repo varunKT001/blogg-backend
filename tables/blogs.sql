@@ -6,5 +6,6 @@ CREATE TABLE blogs(
     edited VARCHAR(10),
     content TEXT NOT NULL,
     contentraw TEXT NOT NULL,
-    description TEXT
+    description TEXT,
+    likes BIGINT,
 );
