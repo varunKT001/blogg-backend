@@ -13,6 +13,10 @@ Blogg is a platform where people with different backgrounds can share their expe
 1. Login/Register:
     * Registration of new users.
     * Login system for existing users with proper session management using JWT.
+2. Password-reset: 
+    * If a user forgets their password, they can reset it by clicking the **Reset** option on the login page.
+    * The process requires the user to enter his registered email address.
+    * An email with a password reset link will be sent to the provided email address. Through the link, users can update their passwords.
 2. Dashboard:
     * Home: User can view blogs written by various users.
     * Add: A user can create a public blog. 
@@ -39,15 +43,21 @@ Blogg is a platform where people with different backgrounds can share their expe
 
 ### Screenshots: 
 
+![register-pc](/assets/images/register-pc.PNG)
+![login-pc](/assets/images/login-pc.PNG)
 ![home-pc](/assets/images/home-pc.PNG)
 ![add-pc](/assets/images/add-pc.PNG)
 ![profile-pc](/assets/images/profile-pc.PNG)
+![share-pc](/assets/images/share-pc.PNG)
 
 
 <h2>
+<img src="/assets/images/register-phone.PNG" width="32%">
+<img src="/assets/images/login-phone.PNG" width="32%">
 <img src="/assets/images/home-phone.PNG" width="32%">
 <img src="/assets/images/add-phone.PNG" width="32%">
 <img src="/assets/images/profile-phone.PNG" width="32%">
+<img src="/assets/images/share-phone.PNG" width="32%">
 </h2>
 
 ### Feedback
