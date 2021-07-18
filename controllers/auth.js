@@ -462,10 +462,128 @@ async function verifyUserEmail(req, res){
     })
 }
 
+async function sendResetLink(req, res){
+    email = req.body.email
+    console.log('reset-link request recieved', email)
+    try {
+        let result = await pool.query(`SELECT * FROM users WHERE email = $1`, [email])
+        if(result.rows.length == 1){
+            user = result.rows[0]
+            let emailToken = await jwt.sign({ email }, process.env.SECRET_KEY, { expiresIn: '2min' })
+
+            const url = `https://${process.env.FRONTEND_URL}/password-reset.html?emailtoken=${emailToken}`
+
+            const html = `<h1>hey, ${user.name}</h1>
+                        <h3>Password reset request</h3>
+                        <p>I looks like you forgot your password. Don't worry! click link below to change your password.
+                        </p>
+                        <p>Click on the following link to go to password reset page:</p>
+                        <a href="${url}">VERIFY</a>`
+
+            const mailOptions = {
+                from: `"blogg" <${process.env.EMAIL}>`,
+                to: user.email,
+                subject: 'Password reset',
+                html: html
+            }
+
+            /*---------- SENDING MAIL TO PROVIDED EMAIL ADDRESS ----------*/
+            transport.sendMail(mailOptions, (err, info) => {
+                if (err) {
+                    console.log(err)
+                    return res.json({
+                        message: 'internal server error',
+                        errcode: '#401'
+                    })
+                }
+                else {
+                    console.log('mail sent')
+                    return res.json({
+                        message: 'password reset link send'
+                    })
+                }
+            })
+        }
+        else if(result.rows.length == 0){
+            return res.json({
+                message: 'user not found'
+            })
+        }
+        else{
+            return res.json({
+                message: 'something went wrong'
+            })
+        }
+    } catch (err) {
+        console.log(err)
+        return res.json({
+            message: 'internal server error',
+            errcode: '#101'
+        })
+    }
+}
+
+async function resetPassword(req, res){
+    token = req.headers.authorization.split(' ')[1]
+    console.log('reset-password request recieved', token)
+    jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
+        if (err) {
+            console.log(err)
+            if (err.name == 'TokenExpiredError') {
+                return res.json({
+                    message: 'token expired'
+                })
+            }
+            else if (err.name == 'JsonWebTokenError' && err.message == 'jwt malformed') {
+                return res.json({
+                    message: 'jwt malformed'
+                })
+            }
+            else if (err.name == 'JsonWebTokenError' && err.message == 'invalid token') {
+                return res.json({
+                    message: 'invalid token'
+                })
+            }
+            else {
+                return res.json({
+                    message: 'token expired'
+                })
+            }
+        }
+        else {
+            let newpassword = req.body.password
+            bcrpt.hash(newpassword, 10, (err, newhash)=>{
+                if(err){
+                    console.log(err)
+                    return res.json({
+                        message: 'internal server error'
+                    })
+                }
+                else{
+                    try {
+                        let result = pool.query(`UPDATE users SET password = $1 WHERE email = $2`, [newhash, user.email])
+                        return res.json({
+                            message: 'password reset successfully'
+                        })
+                    } catch (err) {
+                        console.log(err)
+                        return res.json({
+                            message: 'internal server error',
+                            errcode: '#103'
+                        })
+                    }
+                }
+            })
+        }
+    })
+}
+
 module.exports = {
     register,
     login,
     verifyToken,
     sendEmailLink,
-    verifyUserEmail
+    verifyUserEmail,
+    sendResetLink,
+    resetPassword
 }
