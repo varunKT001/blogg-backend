@@ -21,6 +21,25 @@ async function getBlogs(req, res){
     }
 }
 
+async function getBlog(req, res) {
+    blogid = req.params.blogid
+    console.log('fetch blog request recieved', blogid)
+    try {
+        let result = await pool.query(`SELECT * FROM blogs WHERE blogid = $1`, [blogid])
+        let blogs = result.rows
+        return res.json({
+            message: 'blog fetched successfully',
+            blogs
+        })
+    } catch (err) {
+        console.log(err)
+        return res.json({
+            message: 'internal server error',
+            errcode: '#101'
+        })
+    }
+}
+
 async function getUserBlogs(req, res){
     console.log('fetch user blogs request recieved')
     try {
@@ -154,6 +173,7 @@ async function likedOrNot(req, res){
 
 module.exports = {
     getBlogs, 
+    getBlog,
     getUserBlogs,
     postBlog,
     deleteUserBlog,
