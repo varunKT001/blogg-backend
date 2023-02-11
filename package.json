@@ -11,7 +11,7 @@
     "jsonwebtoken": "^8.5.1",
     "marked": "^4.0.10",
     "nodemailer": "^6.6.3",
-    "nodemon": "^2.0.12",
+    "nodemon": "^2.0.20",
     "pg": "^8.6.0"
   },
   "devDependencies": {},
